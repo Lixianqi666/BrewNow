@@ -1,0 +1,53 @@
+# IDE 配置文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 依赖目录
+node_modules/
+target/
+build/
+dist/
+out/
+bin/
+
+# 日志文件
+*.log
+logs/
+
+# 环境配置文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# 临时文件
+tmp/
+temp/
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 前端构建产物
+frontend/dist/
+frontend/.nuxt/
+frontend/.next/
+
+# 后端构建产物
+backend/target/
+
+# 对象存储数据
+minio-data/
