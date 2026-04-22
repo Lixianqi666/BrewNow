@@ -1,0 +1,81 @@
+- generic [active] [ref=e1]:
+  - main [ref=e18]:
+    - generic [ref=e249]:
+      - complementary [ref=e250]:
+        - generic [ref=e251]:
+          - img [ref=e253]
+          - generic [ref=e255]:
+            - heading "BrewNow" [level=1] [ref=e256]
+            - paragraph [ref=e257]: 管理工作台
+        - menubar [ref=e258]:
+          - menuitem "总览" [ref=e259] [cursor=pointer]:
+            - img [ref=e261]
+            - generic [ref=e263]: 总览
+          - menuitem "用户管理" [ref=e264] [cursor=pointer]:
+            - img [ref=e266]
+            - generic [ref=e268]: 用户管理
+          - menuitem "商家管理" [ref=e269] [cursor=pointer]:
+            - img [ref=e271]
+            - generic [ref=e273]: 商家管理
+          - menuitem "商品管理" [ref=e274] [cursor=pointer]:
+            - img [ref=e276]
+            - generic [ref=e278]: 商品管理
+          - menuitem "订单管理" [ref=e279] [cursor=pointer]:
+            - img [ref=e281]
+            - generic [ref=e283]: 订单管理
+          - menuitem "推荐统计" [ref=e284] [cursor=pointer]:
+            - img [ref=e286]
+            - generic [ref=e288]: 推荐统计
+      - generic [ref=e289]:
+        - generic [ref=e290]:
+          - heading "BrewNow 沏刻茶叶电商平台" [level=2] [ref=e291]
+          - button "系统管理员" [ref=e293] [cursor=pointer]:
+            - img [ref=e296]
+            - generic [ref=e298]: 系统管理员
+        - main [ref=e299]:
+          - generic [ref=e301]:
+            - heading "管理后台" [level=2] [ref=e304]
+            - generic [ref=e306]:
+              - generic [ref=e307]:
+                - generic [ref=e311]:
+                  - img [ref=e314]
+                  - generic [ref=e316]:
+                    - heading "用户总数" [level=3] [ref=e317]
+                    - paragraph [ref=e318]: "29"
+                - generic [ref=e322]:
+                  - img [ref=e325]
+                  - generic [ref=e329]:
+                    - heading "商家总数" [level=3] [ref=e330]
+                    - paragraph [ref=e331]: "3"
+              - generic [ref=e332]:
+                - generic [ref=e334]:
+                  - heading "系统信息" [level=3] [ref=e337]
+                  - generic [ref=e340]:
+                    - paragraph [ref=e341]:
+                      - strong [ref=e342]: 应用名称：
+                      - text: 沏刻茶叶电商平台
+                    - paragraph [ref=e343]:
+                      - strong [ref=e344]: 版本：
+                      - text: 1.0.0
+                    - paragraph [ref=e345]:
+                      - strong [ref=e346]: Java版本：
+                      - text: 17.0.18
+                    - paragraph [ref=e347]:
+                      - strong [ref=e348]: SpringBoot版本：
+                      - text: 2.7.18
+                    - paragraph [ref=e349]:
+                      - strong [ref=e350]: 构建时间：
+                      - text: 2026/4/18 23:00:42
+                - generic [ref=e352]:
+                  - heading "功能导航" [level=3] [ref=e355]
+                  - generic [ref=e357]:
+                    - button "用户管理" [ref=e358] [cursor=pointer]:
+                      - generic [ref=e359]: 用户管理
+                    - button "商家管理" [ref=e360] [cursor=pointer]:
+                      - generic [ref=e361]: 商家管理
+  - alert [ref=e362]:
+    - img [ref=e364]
+    - generic [ref=e366]:
+      - heading "登录成功" [level=2] [ref=e367]
+      - paragraph [ref=e369]: 欢迎回来！
+      - img [ref=e371] [cursor=pointer]
