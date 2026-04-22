@@ -45,6 +45,22 @@ npm run lint
 - 商品接口: /api/product/*
 - 系统接口: /api/system/*
 
+## GitHub Pages 自动部署
+
+仓库已配置 GitHub Actions 工作流：`.github/workflows/deploy-frontend-pages.yml`。  
+当 `main` 分支有前端相关变更时，会自动构建并发布到 GitHub Pages。
+
+### 需要配置
+
+1. 在仓库 **Settings -> Pages** 中，将 Source 设置为 **GitHub Actions**。
+2. 在仓库 **Settings -> Secrets and variables -> Actions** 中新增：
+   - `VITE_API_BASE_URL`：线上后端 API 根地址（例如 `https://api.example.com/api`）。
+
+### 说明
+
+- 未配置 `VITE_API_BASE_URL` 时，前端默认请求 `/api`（适合本地开发代理）。
+- 工作流会自动使用仓库名作为 `Vite base`，确保项目页路径可正常访问。
+
 ## 功能特性
 
 - 🎯 三端分离设计（用户端、商家端、管理端）

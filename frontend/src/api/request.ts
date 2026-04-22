@@ -53,6 +53,8 @@ class LoadingManager {
 }
 
 const loadingManager = new LoadingManager()
+const apiBaseURL = (import.meta.env.VITE_API_BASE_URL || '/api').trim()
+const appBasePath = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '')
 
 const normalizeConfig = (config?: RequestConfig) => ({
   showLoading: config?.showLoading === true,
@@ -103,11 +105,12 @@ const handleUnauthorized = async () => {
   userStorage.clearUserData()
 
   const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
-  const isLoginPage = window.location.pathname === '/login'
+  const loginPath = `${appBasePath}/login`.replace(/\/{2,}/g, '/')
+  const isLoginPage = window.location.pathname === loginPath
 
   if (!isLoginPage) {
     const redirect = encodeURIComponent(currentPath)
-    window.location.replace(`/login?redirect=${redirect}`)
+    window.location.replace(`${loginPath}?redirect=${redirect}`)
   }
 }
 
@@ -131,7 +134,7 @@ const retryRequest = (
 }
 
 const request: AxiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL: apiBaseURL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
