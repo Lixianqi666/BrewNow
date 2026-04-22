@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.brewnow.mapper.ProductReviewMapper">
+
+    <resultMap id="productReviewResultMap" type="com.brewnow.entity.ProductReview">
+        <id property="reviewId" column="review_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderItemId" column="order_item_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="rating" column="rating"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="username" column="username"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="productNameSnapshot" column="product_name_snapshot"/>
+        <result property="imageUrlSnapshot" column="image_url_snapshot"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.brewnow.entity.ProductReview" useGeneratedKeys="true" keyProperty="reviewId">
+        INSERT INTO product_reviews (
+            order_id, order_item_id, user_id, product_id, rating, content, created_at, updated_at, deleted_at
+        ) VALUES (
+            #{orderId}, #{orderItemId}, #{userId}, #{productId}, #{rating}, #{content}, #{createdAt}, #{updatedAt}, #{deletedAt}
+        )
+    </insert>
+
+    <select id="selectByOrderItemId" resultMap="productReviewResultMap">
+        SELECT pr.review_id, pr.order_id, pr.order_item_id, pr.user_id, pr.product_id,
+               pr.rating, pr.content, pr.created_at, pr.updated_at, pr.deleted_at,
+               u.username, u.avatar_url, oi.product_name_snapshot, oi.image_url_snapshot
+        FROM product_reviews pr
+        LEFT JOIN users u ON u.user_id = pr.user_id
+        LEFT JOIN order_items oi ON oi.order_item_id = pr.order_item_id
+        WHERE pr.order_item_id = #{orderItemId}
+          AND pr.deleted_at IS NULL
+        LIMIT 1
+    </select>
+
+    <select id="selectByProductId" resultMap="productReviewResultMap">
+        SELECT pr.review_id, pr.order_id, pr.order_item_id, pr.user_id, pr.product_id,
+               pr.rating, pr.content, pr.created_at, pr.updated_at, pr.deleted_at,
+               u.username, u.avatar_url, oi.product_name_snapshot, oi.image_url_snapshot
+        FROM product_reviews pr
+        LEFT JOIN users u ON u.user_id = pr.user_id
+        LEFT JOIN order_items oi ON oi.order_item_id = pr.order_item_id
+        WHERE pr.product_id = #{productId}
+          AND pr.deleted_at IS NULL
+        ORDER BY pr.created_at DESC
+    </select>
+
+    <select id="selectReviewSummary" resultType="java.util.HashMap">
+        SELECT COALESCE(ROUND(AVG(rating), 1), 0) AS averageRating,
+               COUNT(*) AS reviewCount
+        FROM product_reviews
+        WHERE product_id = #{productId}
+          AND deleted_at IS NULL
+    </select>
+
+    <select id="countByProductId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM product_reviews
+        WHERE product_id = #{productId}
+          AND deleted_at IS NULL
+    </select>
+
+</mapper>

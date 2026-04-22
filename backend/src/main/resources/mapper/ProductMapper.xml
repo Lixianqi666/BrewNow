@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.brewnow.mapper.ProductMapper">
+
+    <!-- 商品结果映射 -->
+    <resultMap id="productResultMap" type="com.brewnow.entity.Product">
+        <id property="productId" column="product_id"/>
+        <result property="merchantId" column="merchant_id"/>
+        <result property="productName" column="product_name"/>
+        <result property="brand" column="brand"/>
+        <result property="category" column="category"/>
+        <result property="teaTags" column="tea_tags"/>
+        <result property="originPlace" column="origin_place"/>
+        <result property="flavorProfile" column="flavor_profile"/>
+        <result property="price" column="price"/>
+        <result property="stockQuantity" column="stock_quantity"/>
+        <result property="warningStock" column="warning_stock"/>
+        <result property="compatibleDevices" column="compatible_devices"/>
+        <result property="description" column="description"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="averageRating" column="average_rating"/>
+        <result property="reviewCount" column="review_count"/>
+    </resultMap>
+
+    <!-- 基础SQL片段 -->
+    <sql id="productColumns">
+        p.product_id, p.merchant_id, p.product_name, p.brand, p.category, p.tea_tags, p.origin_place,
+        p.flavor_profile, p.price, p.stock_quantity, p.warning_stock, p.compatible_devices, p.description,
+        p.image_url, p.status, p.create_time, p.update_time, p.is_deleted,
+        COALESCE(rs.average_rating, 0) AS average_rating,
+        COALESCE(rs.review_count, 0) AS review_count
+    </sql>
+
+    <sql id="productFromClause">
+        FROM products p
+        LEFT JOIN (
+            SELECT product_id,
+                   ROUND(AVG(rating), 1) AS average_rating,
+                   COUNT(*) AS review_count
+            FROM product_reviews
+            WHERE deleted_at IS NULL
+            GROUP BY product_id
+        ) rs ON rs.product_id = p.product_id
+    </sql>
+
+    <!-- 根据ID查询商品 -->
+    <select id="selectById" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.product_id = #{productId} AND p.is_deleted = 0
+    </select>
+
+    <!-- 根据ID查询商品（包含已删除） -->
+    <select id="selectByIdIncludeDeleted" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.product_id = #{productId}
+    </select>
+
+    <!-- 根据分类查询商品 -->
+    <select id="selectByCategory" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.category = #{category} AND p.status = 'ACTIVE' AND p.is_deleted = 0
+        ORDER BY p.create_time DESC
+    </select>
+
+    <!-- 查询所有商品 -->
+    <select id="selectAll" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.status = 'ACTIVE' AND p.is_deleted = 0
+        ORDER BY p.create_time DESC
+    </select>
+
+    <!-- 分页查询商品 -->
+    <select id="selectByPage" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.status = 'ACTIVE' AND p.is_deleted = 0
+        ORDER BY p.create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 分页查询商品（包含已删除） -->
+    <select id="selectByPageIncludeDeleted" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        ORDER BY p.create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 搜索商品 -->
+    <select id="search" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.status = 'ACTIVE' AND p.is_deleted = 0
+          AND (
+            p.product_name LIKE CONCAT('%', #{keyword}, '%')
+            OR p.brand LIKE CONCAT('%', #{keyword}, '%')
+            OR p.category LIKE CONCAT('%', #{keyword}, '%')
+            OR p.tea_tags LIKE CONCAT('%', #{keyword}, '%')
+            OR p.origin_place LIKE CONCAT('%', #{keyword}, '%')
+            OR p.flavor_profile LIKE CONCAT('%', #{keyword}, '%')
+            OR p.description LIKE CONCAT('%', #{keyword}, '%')
+          )
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="searchWithCategory" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.status = 'ACTIVE' AND p.is_deleted = 0
+        <if test="category != null and category != ''">
+            AND p.category = #{category}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                p.product_name LIKE CONCAT('%', #{keyword}, '%')
+                OR p.brand LIKE CONCAT('%', #{keyword}, '%')
+                OR p.category LIKE CONCAT('%', #{keyword}, '%')
+                OR p.tea_tags LIKE CONCAT('%', #{keyword}, '%')
+                OR p.origin_place LIKE CONCAT('%', #{keyword}, '%')
+                OR p.flavor_profile LIKE CONCAT('%', #{keyword}, '%')
+                OR p.description LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY p.create_time DESC
+    </select>
+
+    <!-- 插入商品 -->
+    <insert id="insert" parameterType="com.brewnow.entity.Product" useGeneratedKeys="true" keyProperty="productId">
+        INSERT INTO products (
+            merchant_id, product_name, brand, category, tea_tags, origin_place, flavor_profile,
+            price, stock_quantity, warning_stock, compatible_devices, description, image_url,
+            status, create_time, update_time
+        ) VALUES (
+            #{merchantId}, #{productName}, #{brand}, #{category}, #{teaTags}, #{originPlace}, #{flavorProfile},
+            #{price}, #{stockQuantity}, #{warningStock}, #{compatibleDevices}, #{description}, #{imageUrl},
+            #{status}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据ID更新商品 -->
+    <update id="updateById" parameterType="com.brewnow.entity.Product">
+        UPDATE products
+        <set>
+            <if test="merchantId != null and merchantId != ''">
+                merchant_id = #{merchantId},
+            </if>
+            <if test="productName != null and productName != ''">
+                product_name = #{productName},
+            </if>
+            <if test="brand != null and brand != ''">
+                brand = #{brand},
+            </if>
+            <if test="category != null and category != ''">
+                category = #{category},
+            </if>
+            <if test="teaTags != null">
+                tea_tags = #{teaTags},
+            </if>
+            <if test="originPlace != null">
+                origin_place = #{originPlace},
+            </if>
+            <if test="flavorProfile != null">
+                flavor_profile = #{flavorProfile},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="stockQuantity != null">
+                stock_quantity = #{stockQuantity},
+            </if>
+            <if test="warningStock != null">
+                warning_stock = #{warningStock},
+            </if>
+            <if test="compatibleDevices != null">
+                compatible_devices = #{compatibleDevices},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="imageUrl != null">
+                image_url = #{imageUrl},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        WHERE product_id = #{productId}
+    </update>
+
+    <!-- 逻辑删除商品（仅商家自己的商品） -->
+    <update id="softDeleteByIdAndMerchant">
+        UPDATE products
+        SET is_deleted = 1, update_time = NOW()
+        WHERE product_id = #{productId} AND merchant_id = #{merchantId} AND is_deleted = 0
+    </update>
+
+    <update id="deductStock">
+        UPDATE products
+        SET stock_quantity = stock_quantity - #{quantity},
+            update_time = NOW()
+        WHERE product_id = #{productId}
+          AND is_deleted = 0
+          AND status = 'ACTIVE'
+          AND stock_quantity >= #{quantity}
+    </update>
+
+    <update id="restoreStock">
+        UPDATE products
+        SET stock_quantity = stock_quantity + #{quantity},
+            update_time = NOW()
+        WHERE product_id = #{productId}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 获取热销商品 -->
+    <select id="selectHotProducts" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        LEFT JOIN (
+            SELECT oi.product_id, SUM(oi.quantity) AS sale_quantity
+            FROM order_items oi
+            JOIN orders o ON o.order_id = oi.order_id
+            WHERE o.deleted_at IS NULL
+              AND o.order_status IN ('PAID', 'SHIPPED', 'DELIVERED')
+            GROUP BY oi.product_id
+        ) hs ON hs.product_id = p.product_id
+        WHERE p.status = 'ACTIVE' AND p.is_deleted = 0
+        ORDER BY COALESCE(hs.sale_quantity, 0) DESC, p.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 统计商品总数 -->
+    <select id="countAll" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM products
+        WHERE is_deleted = 0
+    </select>
+
+    <!-- 统计商品总数（包含已删除） -->
+    <select id="countAllIncludeDeleted" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM products
+    </select>
+
+    <!-- 统计分类商品数量 -->
+    <select id="countByCategory" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM products
+        WHERE category = #{category} AND is_deleted = 0
+    </select>
+
+    <!-- 检查商品是否存在 -->
+    <select id="existsById" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM products
+        WHERE product_id = #{productId} AND is_deleted = 0
+    </select>
+
+    <!-- =============== 商家专用SQL =============== -->
+
+    <!-- 根据商家ID分页查询商品 -->
+    <select id="selectByMerchantWithPage" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.merchant_id = #{merchantId} AND p.is_deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (p.product_name LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.brand LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.description LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.tea_tags LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="category != null and category != ''">
+            AND p.category = #{category}
+        </if>
+        ORDER BY p.create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 根据商家ID统计商品数量 -->
+    <select id="countByMerchant" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM products p
+        WHERE p.merchant_id = #{merchantId} AND p.is_deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (p.product_name LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.brand LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.description LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.tea_tags LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="category != null and category != ''">
+            AND p.category = #{category}
+        </if>
+    </select>
+
+    <!-- 根据商家ID查询所有商品 -->
+    <select id="selectByMerchant" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.merchant_id = #{merchantId} AND p.is_deleted = 0
+        ORDER BY p.create_time DESC
+    </select>
+
+    <!-- 更新商品状态 -->
+    <update id="updateProductStatus">
+        UPDATE products
+        SET status = #{status}, update_time = NOW()
+        WHERE product_id = #{productId} AND is_deleted = 0
+    </update>
+
+    <update id="updateImageUrlById">
+        UPDATE products
+        SET image_url = #{imageUrl},
+            update_time = NOW()
+        WHERE product_id = #{productId}
+    </update>
+
+    <select id="countLowStockByMerchant" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM products
+        WHERE merchant_id = #{merchantId}
+          AND is_deleted = 0
+          AND stock_quantity <![CDATA[ <= ]]> warning_stock
+    </select>
+
+    <select id="selectLowStockByMerchant" resultMap="productResultMap">
+        SELECT <include refid="productColumns"/>
+        <include refid="productFromClause"/>
+        WHERE p.merchant_id = #{merchantId}
+          AND p.is_deleted = 0
+          AND p.stock_quantity <![CDATA[ <= ]]> p.warning_stock
+        ORDER BY p.stock_quantity ASC, p.update_time DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper> 

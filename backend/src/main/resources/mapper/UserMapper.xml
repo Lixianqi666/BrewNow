@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.brewnow.mapper.UserMapper">
+
+    <!-- 用户结果映射 -->
+    <resultMap id="userResultMap" type="com.brewnow.entity.User">
+        <id property="userId" column="user_id"/>
+        <result property="account" column="account"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="gender" column="gender"/>
+        <result property="registerTime" column="register_time"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="address" column="address"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="role" column="role"/>
+        <result property="merchantId" column="merchant_id"/>
+    </resultMap>
+
+    <!-- 基础SQL片段 -->
+    <sql id="userColumns">
+        user_id, account, username, password, gender, register_time, 
+        phone, email, address, avatar_url, deleted_at, role, merchant_id
+    </sql>
+
+    <sql id="whereCondition">
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="account != null and account != ''">
+                AND account = #{account}
+            </if>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="gender != null">
+                AND gender = #{gender}
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone = #{phone}
+            </if>
+            <if test="email != null and email != ''">
+                AND email = #{email}
+            </if>
+            AND deleted_at IS NULL
+        </where>
+    </sql>
+
+    <!-- 根据ID查询用户 -->
+    <select id="selectById" resultMap="userResultMap">
+        SELECT <include refid="userColumns"/>
+        FROM users
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据账号查询用户 -->
+    <select id="selectByAccount" resultMap="userResultMap">
+        SELECT <include refid="userColumns"/>
+        FROM users
+        WHERE account = #{account} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据用户名查询用户 -->
+    <select id="selectByUsername" resultMap="userResultMap">
+        SELECT <include refid="userColumns"/>
+        FROM users
+        WHERE username = #{username} AND deleted_at IS NULL
+    </select>
+
+    <!-- 查询所有用户（分页） -->
+    <select id="selectAll" resultMap="userResultMap">
+        SELECT <include refid="userColumns"/>
+        FROM users
+        WHERE deleted_at IS NULL
+        ORDER BY register_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据条件查询用户 -->
+    <select id="selectByCondition" resultMap="userResultMap">
+        SELECT <include refid="userColumns"/>
+        FROM users
+        <include refid="whereCondition"/>
+        ORDER BY register_time DESC
+    </select>
+
+    <!-- 统计用户总数 -->
+    <select id="countAll" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM users
+        WHERE deleted_at IS NULL
+    </select>
+
+    <!-- 根据条件统计用户数量 -->
+    <select id="countByCondition" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM users
+        <include refid="whereCondition"/>
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="insert" parameterType="com.brewnow.entity.User" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO users (
+            account, username, password, gender, phone, email, address, avatar_url, role, merchant_id
+        ) VALUES (
+            #{account}, #{username}, #{password}, #{gender}, #{phone}, #{email}, #{address}, #{avatarUrl}, #{role}, #{merchantId}
+        )
+    </insert>
+
+    <!-- 根据ID更新用户 -->
+    <update id="updateById" parameterType="com.brewnow.entity.User">
+        UPDATE users
+        <set>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="gender != null">
+                gender = #{gender},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="address != null">
+                address = #{address},
+            </if>
+            <if test="avatarUrl != null">
+                avatar_url = #{avatarUrl},
+            </if>
+        </set>
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+    </update>
+
+    <!-- 根据ID删除用户（物理删除） -->
+    <delete id="deleteById">
+        DELETE FROM users WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 根据ID软删除用户 -->
+    <update id="softDeleteById">
+        UPDATE users 
+        SET deleted_at = NOW() 
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+    </update>
+
+    <!-- 检查账号是否存在 -->
+    <select id="existsByAccount" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM users
+        WHERE account = #{account} AND deleted_at IS NULL
+    </select>
+
+    <!-- 检查用户名是否存在 -->
+    <select id="existsByUsername" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM users
+        WHERE username = #{username} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据手机号查询用户 -->
+    <select id="selectByPhone" resultMap="userResultMap">
+        SELECT <include refid="userColumns"/>
+        FROM users
+        WHERE phone = #{phone} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据邮箱查询用户 -->
+    <select id="selectByEmail" resultMap="userResultMap">
+        SELECT <include refid="userColumns"/>
+        FROM users
+        WHERE email = #{email} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据商家ID查询商家用户 -->
+    <select id="selectMerchantByMerchantId" resultMap="userResultMap">
+        SELECT <include refid="userColumns"/>
+        FROM users
+        WHERE merchant_id = #{merchantId}
+        AND role = 'MERCHANT'
+        AND deleted_at IS NULL
+    </select>
+
+    <!-- 统计今日新增用户数 -->
+    <select id="countTodayNewUsers" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM users
+        WHERE DATE(register_time) = CURDATE()
+        AND deleted_at IS NULL
+    </select>
+
+</mapper> 

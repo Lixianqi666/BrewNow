@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.brewnow.mapper.OrderMapper">
+
+    <!-- 订单结果映射 -->
+    <resultMap id="orderResultMap" type="com.brewnow.entity.Order">
+        <id property="orderId" column="order_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderNumber" column="order_number"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="shippingAddress" column="shipping_address"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="remark" column="remark"/>
+        <result property="stockDeducted" column="stock_deducted"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <!-- 基础SQL片段 -->
+    <sql id="orderColumns">
+        order_id, user_id, order_number, total_amount, order_status, payment_method,
+        order_date, shipping_address, contact_phone, remark, stock_deducted, deleted_at
+    </sql>
+
+    <sql id="whereCondition">
+        <where>
+            <if test="orderId != null">
+                AND order_id = #{orderId}
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="orderNumber != null and orderNumber != ''">
+                AND order_number = #{orderNumber}
+            </if>
+            <if test="orderStatus != null">
+                AND order_status = #{orderStatus}
+            </if>
+            AND deleted_at IS NULL
+        </where>
+    </sql>
+
+    <!-- 根据ID查询订单 -->
+    <select id="selectById" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE order_id = #{orderId} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据订单号查询订单 -->
+    <select id="selectByOrderNumber" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE order_number = #{orderNumber} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据用户ID查询订单 -->
+    <select id="selectByUserId" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+        ORDER BY order_date DESC
+    </select>
+
+    <!-- 查询所有订单 -->
+    <select id="selectAll" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE deleted_at IS NULL
+        ORDER BY order_date DESC
+    </select>
+
+    <!-- 分页查询订单 -->
+    <select id="selectByPage" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE deleted_at IS NULL
+        ORDER BY order_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 根据状态查询订单 -->
+    <select id="selectByStatus" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE order_status = #{status} AND deleted_at IS NULL
+        ORDER BY order_date DESC
+    </select>
+
+    <!-- 根据状态分页查询订单 -->
+    <select id="selectByStatusWithPage" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE order_status = #{status} AND deleted_at IS NULL
+        ORDER BY order_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 根据条件查询订单 -->
+    <select id="selectByCondition" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        <include refid="whereCondition"/>
+        ORDER BY order_date DESC
+    </select>
+
+    <!-- 插入订单 -->
+    <insert id="insert" parameterType="com.brewnow.entity.Order" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO orders (
+            user_id, order_number, total_amount, order_status, payment_method,
+            order_date, shipping_address, contact_phone, remark, stock_deducted
+        ) VALUES (
+            #{userId}, #{orderNumber}, #{totalAmount}, #{orderStatus}, #{paymentMethod},
+            #{orderDate}, #{shippingAddress}, #{contactPhone}, #{remark}, #{stockDeducted}
+        )
+    </insert>
+
+    <!-- 根据ID更新订单 -->
+    <update id="updateById" parameterType="com.brewnow.entity.Order">
+        UPDATE orders
+        <set>
+            <if test="totalAmount != null">
+                total_amount = #{totalAmount},
+            </if>
+            <if test="orderStatus != null">
+                order_status = #{orderStatus},
+            </if>
+            <if test="paymentMethod != null">
+                payment_method = #{paymentMethod},
+            </if>
+            <if test="shippingAddress != null">
+                shipping_address = #{shippingAddress},
+            </if>
+            <if test="contactPhone != null">
+                contact_phone = #{contactPhone},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="stockDeducted != null">
+                stock_deducted = #{stockDeducted},
+            </if>
+            <if test="deletedAt != null">
+                deleted_at = #{deletedAt},
+            </if>
+        </set>
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 根据ID删除订单（物理删除） -->
+    <delete id="deleteById">
+        DELETE FROM orders WHERE order_id = #{orderId}
+    </delete>
+
+    <!-- 根据ID软删除订单 -->
+    <update id="softDeleteById">
+        UPDATE orders 
+        SET deleted_at = NOW() 
+        WHERE order_id = #{orderId} AND deleted_at IS NULL
+    </update>
+
+    <!-- 统计订单总数 -->
+    <select id="countAll" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM orders
+        WHERE deleted_at IS NULL
+    </select>
+
+    <!-- 根据状态统计订单数量 -->
+    <select id="countByStatus" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM orders
+        WHERE order_status = #{status} AND deleted_at IS NULL
+    </select>
+
+    <select id="countByMerchant" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT o.order_id)
+        FROM orders o
+        JOIN order_items oi ON oi.order_id = o.order_id
+        JOIN products p ON p.product_id = oi.product_id
+        WHERE o.deleted_at IS NULL
+          AND p.merchant_id = #{merchantId}
+    </select>
+
+    <!-- 根据条件统计订单数量 -->
+    <select id="countByCondition" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM orders
+        <include refid="whereCondition"/>
+    </select>
+
+    <!-- 检查订单号是否存在 -->
+    <select id="existsByOrderNumber" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM orders
+        WHERE order_number = #{orderNumber} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据用户ID分页查询订单 -->
+    <select id="selectByUserIdWithPage" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+        ORDER BY order_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 根据用户ID和状态分页查询订单 -->
+    <select id="selectByUserIdAndStatus" resultMap="orderResultMap">
+        SELECT <include refid="orderColumns"/>
+        FROM orders
+        WHERE user_id = #{userId} AND order_status = #{status} AND deleted_at IS NULL
+        ORDER BY order_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 根据用户ID统计订单数量 -->
+    <select id="countByUserId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM orders
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据用户ID和状态统计订单数量 -->
+    <select id="countByUserIdAndStatus" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM orders
+        WHERE user_id = #{userId} AND order_status = #{status} AND deleted_at IS NULL
+    </select>
+
+    <!-- 根据用户ID计算总消费金额 -->
+    <select id="getTotalAmountByUserId" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(total_amount), 0)
+        FROM orders
+        WHERE user_id = #{userId} AND order_status != 'CANCELLED' AND deleted_at IS NULL
+    </select>
+
+    <!-- 统计今日新增订单数 -->
+    <select id="countTodayNewOrders" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM orders
+        WHERE DATE(order_date) = CURDATE()
+        AND deleted_at IS NULL
+    </select>
+
+    <resultMap id="merchantOrderSummaryMap" type="com.brewnow.dto.order.MerchantOrderSummary">
+        <id property="orderId" column="order_id"/>
+        <result property="orderNumber" column="order_number"/>
+        <result property="userId" column="user_id"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="itemCount" column="item_count"/>
+        <result property="productNames" column="product_names"/>
+    </resultMap>
+
+    <select id="selectByMerchant" resultMap="merchantOrderSummaryMap">
+        SELECT o.order_id,
+               o.order_number,
+               o.user_id,
+               o.total_amount,
+               o.order_status,
+               o.payment_method,
+               o.order_date,
+               COUNT(DISTINCT oi.order_item_id) AS item_count,
+               GROUP_CONCAT(DISTINCT p.product_name ORDER BY p.product_name SEPARATOR '、') AS product_names
+        FROM orders o
+        JOIN order_items oi ON oi.order_id = o.order_id
+        JOIN products p ON p.product_id = oi.product_id
+        WHERE o.deleted_at IS NULL
+          AND p.merchant_id = #{merchantId}
+          <if test="status != null and status != ''">
+              AND o.order_status = #{status}
+          </if>
+        GROUP BY o.order_id
+        ORDER BY o.order_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByMerchantWithStatus" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT o.order_id)
+        FROM orders o
+        JOIN order_items oi ON oi.order_id = o.order_id
+        JOIN products p ON p.product_id = oi.product_id
+        WHERE o.deleted_at IS NULL
+          AND p.merchant_id = #{merchantId}
+          <if test="status != null and status != ''">
+              AND o.order_status = #{status}
+          </if>
+    </select>
+
+    <select id="countMerchantOrderOwnership" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT o.order_id)
+        FROM orders o
+        JOIN order_items oi ON oi.order_id = o.order_id
+        JOIN products p ON p.product_id = oi.product_id
+        WHERE o.deleted_at IS NULL
+          AND p.merchant_id = #{merchantId}
+          AND o.order_id = #{orderId}
+    </select>
+
+</mapper>

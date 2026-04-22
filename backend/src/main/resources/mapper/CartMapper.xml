@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.brewnow.mapper.CartMapper">
+
+    <!-- 购物车结果映射 -->
+    <resultMap id="cartResultMap" type="com.brewnow.entity.Cart">
+        <id property="cartId" column="cart_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 基础SQL片段 -->
+    <sql id="cartColumns">
+        cart_id, user_id, create_time, update_time
+    </sql>
+
+    <!-- 根据用户ID查询购物车 -->
+    <select id="selectByUserId" resultMap="cartResultMap">
+        SELECT <include refid="cartColumns"/>
+        FROM shopping_carts
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据购物车ID查询购物车 -->
+    <select id="selectById" resultMap="cartResultMap">
+        SELECT <include refid="cartColumns"/>
+        FROM shopping_carts
+        WHERE cart_id = #{cartId}
+    </select>
+
+    <!-- 创建购物车 -->
+    <insert id="insert" parameterType="com.brewnow.entity.Cart" useGeneratedKeys="true" keyProperty="cartId">
+        INSERT INTO shopping_carts (user_id, create_time, update_time)
+        VALUES (#{userId}, #{createTime}, #{updateTime})
+    </insert>
+
+    <!-- 更新购物车 -->
+    <update id="updateById" parameterType="com.brewnow.entity.Cart">
+        UPDATE shopping_carts
+        SET update_time = #{updateTime}
+        WHERE cart_id = #{cartId}
+    </update>
+
+    <!-- 删除购物车 -->
+    <delete id="deleteById">
+        DELETE FROM shopping_carts WHERE cart_id = #{cartId}
+    </delete>
+
+</mapper> 

@@ -51,3 +51,7 @@ backend/target/
 
 # 对象存储数据
 minio-data/
+.minio-data/
+
+# 本地依赖缓存
+.m2/

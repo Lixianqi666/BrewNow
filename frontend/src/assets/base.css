@@ -1,0 +1,51 @@
+:root {
+  --brew-bg: #f6f2e9;
+  --brew-bg-soft: #efe7d7;
+  --brew-surface: #fffdf7;
+  --brew-surface-2: #f8f2e5;
+  --brew-line: #e3d9c5;
+  --brew-text: #2c2418;
+  --brew-text-subtle: #6e6251;
+  --brew-primary: #2f5d45;
+  --brew-primary-hover: #264b38;
+  --brew-primary-soft: #e5eee8;
+  --brew-primary-pressed: #1f3f30;
+  --brew-accent: #b47e3c;
+  --brew-accent-hover: #9d6d31;
+  --brew-danger: #b2453f;
+  --brew-danger-hover: #963833;
+  --brew-shadow: 0 8px 18px rgba(47, 62, 36, 0.06);
+  --brew-btn-radius: 10px;
+  --brew-btn-height: 40px;
+  --brew-btn-padding-x: 18px;
+  --brew-btn-font-size: 14px;
+  --brew-btn-shadow: 0 4px 14px rgba(47, 93, 69, 0.16);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  background-color: #faf5eb;
+}
+
+body {
+  background-color: #faf5eb;
+  color: var(--brew-text);
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  min-height: 100%;
+  background-color: #faf5eb;
+}

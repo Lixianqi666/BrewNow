@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2D5016;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4A7C23;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cup" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5E6D3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E8D5B7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tea" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B6914;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6B4F12;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="leaf1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5B8C2A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3D6B1A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 圆形背景 -->
+  <circle cx="100" cy="100" r="96" fill="url(#bg)" />
+  <circle cx="100" cy="100" r="96" fill="none" stroke="#1A3A0A" stroke-width="2" opacity="0.3"/>
+
+  <!-- 茶杯主体 -->
+  <path d="M 62 88 L 68 140 Q 70 152 82 155 L 118 155 Q 130 152 132 140 L 138 88 Z" 
+        fill="url(#cup)" stroke="#C4A882" stroke-width="1.5"/>
+  
+  <!-- 茶杯口 -->
+  <ellipse cx="100" cy="88" rx="39" ry="8" fill="#F5E6D3" stroke="#C4A882" stroke-width="1.5"/>
+  
+  <!-- 茶汤 -->
+  <ellipse cx="100" cy="90" rx="34" ry="6" fill="url(#tea)" opacity="0.9"/>
+  
+  <!-- 茶汤高光 -->
+  <ellipse cx="90" cy="88" rx="15" ry="2.5" fill="#A67C1A" opacity="0.4"/>
+
+  <!-- 杯把手 -->
+  <path d="M 138 98 Q 158 98 158 118 Q 158 138 138 138" 
+        fill="none" stroke="#C4A882" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- 茶叶1 - 左 -->
+  <path d="M 80 74 Q 72 62 82 56 Q 92 50 88 66 Q 84 56 80 74Z" 
+        fill="url(#leaf1)" opacity="0.9"/>
+  
+  <!-- 茶叶2 - 右 -->
+  <path d="M 112 68 Q 120 56 128 62 Q 136 68 118 64 Q 124 56 112 68Z" 
+        fill="url(#leaf1)" opacity="0.85"/>
+
+  <!-- 茶叶3 - 中 -->
+  <path d="M 96 60 Q 94 48 102 44 Q 108 42 106 56 Q 104 46 96 60Z" 
+        fill="#4A7C23" opacity="0.8"/>
+
+  <!-- 蒸汽 -->
+  <path d="M 88 48 Q 85 38 90 30" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.6">
+    <animate attributeName="d" values="M 88 48 Q 85 38 90 30;M 88 48 Q 92 36 86 28;M 88 48 Q 85 38 90 30" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="3s" repeatCount="indefinite"/>
+  </path>
+  
+  <path d="M 100 44 Q 97 32 102 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.5">
+    <animate attributeName="d" values="M 100 44 Q 97 32 102 24;M 100 44 Q 104 30 98 22;M 100 44 Q 97 32 102 24" dur="2.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.5;0.15;0.5" dur="2.5s" repeatCount="indefinite"/>
+  </path>
+  
+  <path d="M 112 48 Q 110 36 114 28" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.45">
+    <animate attributeName="d" values="M 112 48 Q 110 36 114 28;M 112 48 Q 115 34 111 26;M 112 48 Q 110 36 114 28" dur="3.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.45;0.1;0.45" dur="3.5s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- 杯底托盘 -->
+  <ellipse cx="100" cy="160" rx="45" ry="5" fill="#D4C4A8" opacity="0.6"/>
+</svg>

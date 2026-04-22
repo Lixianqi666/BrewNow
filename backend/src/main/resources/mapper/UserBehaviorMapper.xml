@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.brewnow.mapper.UserBehaviorMapper">
+
+    <resultMap id="userBehaviorResultMap" type="com.brewnow.entity.UserBehavior">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="behaviorType" column="behavior_type"/>
+        <result property="behaviorWeight" column="behavior_weight"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.brewnow.entity.UserBehavior" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_behavior_logs (
+            user_id, product_id, behavior_type, behavior_weight, created_at
+        ) VALUES (
+            #{userId}, #{productId}, #{behaviorType}, #{behaviorWeight}, #{createdAt}
+        )
+    </insert>
+
+    <select id="selectAll" resultMap="userBehaviorResultMap">
+        SELECT id, user_id, product_id, behavior_type, behavior_weight, created_at
+        FROM user_behavior_logs
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByUserId" resultMap="userBehaviorResultMap">
+        SELECT id, user_id, product_id, behavior_type, behavior_weight, created_at
+        FROM user_behavior_logs
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="countByUserId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_behavior_logs
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="countAll" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_behavior_logs
+    </select>
+
+    <select id="countDistinctUsers" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT user_id)
+        FROM user_behavior_logs
+    </select>
+
+    <select id="countDistinctProducts" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT product_id)
+        FROM user_behavior_logs
+    </select>
+
+    <select id="countByType" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_behavior_logs
+        WHERE behavior_type = #{behaviorType}
+    </select>
+
+    <select id="selectRecent" resultMap="userBehaviorResultMap">
+        SELECT id, user_id, product_id, behavior_type, behavior_weight, created_at
+        FROM user_behavior_logs
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

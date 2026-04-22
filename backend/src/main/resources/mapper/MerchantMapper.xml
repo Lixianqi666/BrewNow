@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.brewnow.mapper.MerchantMapper">
+
+    <!-- 商家结果映射 -->
+    <resultMap id="merchantResultMap" type="com.brewnow.entity.Merchant">
+        <id property="merchantId" column="merchant_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="companyName" column="company_name"/>
+        <result property="businessLicense" column="business_license"/>
+        <result property="contactPerson" column="contact_person"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="businessAddress" column="business_address"/>
+        <result property="description" column="description"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="approveTime" column="approve_time"/>
+    </resultMap>
+
+    <!-- 基础SQL片段 -->
+    <sql id="merchantColumns">
+        merchant_id, user_id, company_name, business_license, contact_person, 
+        contact_phone, business_address, description, status, create_time, approve_time
+    </sql>
+
+    <!-- 根据ID查询商家 -->
+    <select id="selectById" resultMap="merchantResultMap">
+        SELECT <include refid="merchantColumns"/>
+        FROM merchants
+        WHERE merchant_id = #{merchantId}
+    </select>
+
+    <!-- 根据用户ID查询商家 -->
+    <select id="selectByUserId" resultMap="merchantResultMap">
+        SELECT <include refid="merchantColumns"/>
+        FROM merchants
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 查询所有商家 -->
+    <select id="selectAll" resultMap="merchantResultMap">
+        SELECT <include refid="merchantColumns"/>
+        FROM merchants
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 分页查询商家 -->
+    <select id="selectByPage" resultMap="merchantResultMap">
+        SELECT <include refid="merchantColumns"/>
+        FROM merchants
+        ORDER BY create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 根据状态查询商家 -->
+    <select id="selectByStatus" resultMap="merchantResultMap">
+        SELECT <include refid="merchantColumns"/>
+        FROM merchants
+        WHERE status = #{status}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 插入商家 -->
+    <insert id="insert" parameterType="com.brewnow.entity.Merchant">
+        INSERT INTO merchants (
+            merchant_id, user_id, company_name, business_license, contact_person,
+            contact_phone, business_address, description, status, create_time
+        ) VALUES (
+            #{merchantId}, #{userId}, #{companyName}, #{businessLicense}, #{contactPerson},
+            #{contactPhone}, #{businessAddress}, #{description}, #{status}, #{createTime}
+        )
+    </insert>
+
+    <!-- 根据ID更新商家 -->
+    <update id="updateById" parameterType="com.brewnow.entity.Merchant">
+        UPDATE merchants
+        <set>
+            <if test="companyName != null and companyName != ''">
+                company_name = #{companyName},
+            </if>
+            <if test="businessLicense != null and businessLicense != ''">
+                business_license = #{businessLicense},
+            </if>
+            <if test="contactPerson != null and contactPerson != ''">
+                contact_person = #{contactPerson},
+            </if>
+            <if test="contactPhone != null and contactPhone != ''">
+                contact_phone = #{contactPhone},
+            </if>
+            <if test="businessAddress != null and businessAddress != ''">
+                business_address = #{businessAddress},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="approveTime != null">
+                approve_time = #{approveTime},
+            </if>
+        </set>
+        WHERE merchant_id = #{merchantId}
+    </update>
+
+    <!-- 根据ID删除商家 -->
+    <delete id="deleteById">
+        DELETE FROM merchants WHERE merchant_id = #{merchantId}
+    </delete>
+
+    <!-- 统计商家总数 -->
+    <select id="countAll" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM merchants
+    </select>
+
+    <!-- 根据状态统计商家数量 -->
+    <select id="countByStatus" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM merchants
+        WHERE status = #{status}
+    </select>
+
+    <!-- 检查商家ID是否存在 -->
+    <select id="existsByMerchantId" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM merchants
+        WHERE merchant_id = #{merchantId}
+    </select>
+
+</mapper> 

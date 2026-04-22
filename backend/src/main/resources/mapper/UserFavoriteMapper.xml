@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.brewnow.mapper.UserFavoriteMapper">
+
+    <resultMap id="userFavoriteResultMap" type="com.brewnow.entity.UserFavorite">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <resultMap id="favoriteProductResultMap" type="com.brewnow.entity.Product">
+        <id property="productId" column="product_id"/>
+        <result property="merchantId" column="merchant_id"/>
+        <result property="productName" column="product_name"/>
+        <result property="brand" column="brand"/>
+        <result property="category" column="category"/>
+        <result property="teaTags" column="tea_tags"/>
+        <result property="originPlace" column="origin_place"/>
+        <result property="flavorProfile" column="flavor_profile"/>
+        <result property="price" column="price"/>
+        <result property="stockQuantity" column="stock_quantity"/>
+        <result property="warningStock" column="warning_stock"/>
+        <result property="compatibleDevices" column="compatible_devices"/>
+        <result property="description" column="description"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="averageRating" column="average_rating"/>
+        <result property="reviewCount" column="review_count"/>
+    </resultMap>
+
+    <select id="selectByUserAndProduct" resultMap="userFavoriteResultMap">
+        SELECT id, user_id, product_id, created_at, deleted_at
+        FROM user_favorites
+        WHERE user_id = #{userId} AND product_id = #{productId}
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.brewnow.entity.UserFavorite" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_favorites (user_id, product_id, created_at, deleted_at)
+        VALUES (#{userId}, #{productId}, #{createdAt}, #{deletedAt})
+    </insert>
+
+    <update id="restore">
+        UPDATE user_favorites
+        SET deleted_at = NULL
+        WHERE user_id = #{userId} AND product_id = #{productId}
+    </update>
+
+    <update id="softDelete">
+        UPDATE user_favorites
+        SET deleted_at = NOW()
+        WHERE user_id = #{userId} AND product_id = #{productId} AND deleted_at IS NULL
+    </update>
+
+    <select id="selectActiveProductsByUser" resultMap="favoriteProductResultMap">
+        SELECT p.product_id, p.merchant_id, p.product_name, p.brand, p.category, p.tea_tags, p.origin_place,
+               p.flavor_profile, p.price, p.stock_quantity, p.warning_stock, p.compatible_devices, p.description,
+               p.image_url, p.status, p.create_time, p.update_time, p.is_deleted,
+               COALESCE(rs.average_rating, 0) AS average_rating,
+               COALESCE(rs.review_count, 0) AS review_count
+        FROM user_favorites uf
+        JOIN products p ON p.product_id = uf.product_id
+        LEFT JOIN (
+            SELECT product_id, ROUND(AVG(rating), 1) AS average_rating, COUNT(*) AS review_count
+            FROM product_reviews
+            WHERE deleted_at IS NULL
+            GROUP BY product_id
+        ) rs ON rs.product_id = p.product_id
+        WHERE uf.user_id = #{userId}
+          AND uf.deleted_at IS NULL
+          AND p.is_deleted = 0
+        ORDER BY uf.created_at DESC
+    </select>
+
+    <select id="countActiveByUserAndProduct" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_favorites
+        WHERE user_id = #{userId}
+          AND product_id = #{productId}
+          AND deleted_at IS NULL
+    </select>
+
+    <select id="countAllActive" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_favorites
+        WHERE deleted_at IS NULL
+    </select>
+
+</mapper>

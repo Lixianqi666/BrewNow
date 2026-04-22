@@ -1,0 +1,165 @@
+@import './base.css';
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: var(--brew-primary);
+}
+
+.el-card {
+  border: 1px solid var(--brew-line) !important;
+  background: var(--brew-surface) !important;
+  box-shadow: var(--brew-shadow) !important;
+  border-radius: 16px !important;
+}
+
+.el-button--primary {
+  --el-button-bg-color: var(--brew-primary) !important;
+  --el-button-border-color: var(--brew-primary) !important;
+  --el-button-hover-bg-color: var(--brew-primary-hover) !important;
+  --el-button-hover-border-color: var(--brew-primary-hover) !important;
+  --el-button-active-bg-color: var(--brew-primary-hover) !important;
+}
+
+.el-button.base-button {
+  min-height: var(--brew-btn-height);
+  padding: 0 var(--brew-btn-padding-x);
+  border-radius: var(--brew-btn-radius) !important;
+  font-size: var(--brew-btn-font-size);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.el-button.base-button.base-button--primary {
+  --el-button-bg-color: var(--brew-primary);
+  --el-button-border-color: var(--brew-primary);
+  --el-button-text-color: #f7f3ea;
+  --el-button-hover-bg-color: var(--brew-primary-hover);
+  --el-button-hover-border-color: var(--brew-primary-hover);
+  --el-button-hover-text-color: #fff;
+  --el-button-active-bg-color: var(--brew-primary-pressed);
+  --el-button-active-border-color: var(--brew-primary-pressed);
+}
+
+.el-button.base-button.base-button--default {
+  --el-button-bg-color: #ffffff;
+  --el-button-border-color: var(--brew-line);
+  --el-button-text-color: var(--brew-text);
+  --el-button-hover-bg-color: var(--brew-surface-2);
+  --el-button-hover-border-color: #d8ccb7;
+  --el-button-hover-text-color: var(--brew-text);
+  --el-button-active-bg-color: var(--brew-surface-2);
+}
+
+.el-button.base-button.base-button--warning {
+  --el-button-bg-color: var(--brew-accent);
+  --el-button-border-color: var(--brew-accent);
+  --el-button-text-color: #fff8ef;
+  --el-button-hover-bg-color: var(--brew-accent-hover);
+  --el-button-hover-border-color: var(--brew-accent-hover);
+  --el-button-hover-text-color: #fffdf7;
+  --el-button-active-bg-color: #8a5d28;
+  --el-button-active-border-color: #8a5d28;
+}
+
+.el-button.base-button.base-button--danger {
+  --el-button-bg-color: var(--brew-danger);
+  --el-button-border-color: var(--brew-danger);
+  --el-button-text-color: #fff6f5;
+  --el-button-hover-bg-color: var(--brew-danger-hover);
+  --el-button-hover-border-color: var(--brew-danger-hover);
+  --el-button-hover-text-color: #fff;
+  --el-button-active-bg-color: #812d28;
+  --el-button-active-border-color: #812d28;
+}
+
+.el-button.base-button.is-plain.base-button--primary {
+  --el-button-bg-color: #ffffff;
+  --el-button-border-color: rgba(47, 93, 69, 0.24);
+  --el-button-text-color: var(--brew-primary);
+  --el-button-hover-bg-color: var(--brew-primary-soft);
+  --el-button-hover-border-color: rgba(47, 93, 69, 0.36);
+}
+
+.el-button.base-button.is-text,
+.el-button.base-button.is-link {
+  min-height: auto;
+  padding: 4px 8px;
+  border-radius: 8px !important;
+  background: transparent;
+}
+
+.el-button.base-button.is-text.base-button--default,
+.el-button.base-button.is-link.base-button--default {
+  --el-button-text-color: var(--brew-primary);
+  --el-button-hover-text-color: var(--brew-primary-hover);
+}
+
+.el-button.base-button.is-text.base-button--danger,
+.el-button.base-button.is-link.base-button--danger {
+  --el-button-text-color: var(--brew-danger);
+  --el-button-hover-text-color: var(--brew-danger-hover);
+}
+
+.el-button.base-button.is-text.base-button--primary,
+.el-button.base-button.is-link.base-button--primary {
+  --el-button-text-color: var(--brew-primary);
+  --el-button-hover-text-color: var(--brew-primary-hover);
+}
+
+.el-button.base-button.el-button--large {
+  min-height: 44px;
+  padding: 0 22px;
+}
+
+.el-button.base-button.el-button--small {
+  min-height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.admin-layout .el-button.base-button,
+.merchant-layout .el-button.base-button {
+  font-weight: 600;
+}
+
+.admin-layout .el-button.base-button.el-button--small,
+.merchant-layout .el-button.base-button.el-button--small {
+  min-height: 34px;
+  padding: 0 16px;
+  border-radius: 8px !important;
+}
+
+.brew-table :deep(.el-table__fixed-right-patch) {
+  background: #fbf8f2;
+}
+
+.brew-table :deep(.el-table__fixed-right),
+.brew-table :deep(.el-table__fixed-left) {
+  box-shadow: 0 0 0 1px rgba(227, 217, 197, 0.8);
+}
+
+.brew-table :deep(.el-table th.el-table__cell) {
+  background: #fbf8f2;
+  color: #78664d;
+  text-align: center;
+}
+
+.brew-table :deep(.el-table td.el-table__cell) {
+  text-align: center;
+}
+
+.el-main {
+  --el-main-padding: 0 !important;
+}
+
+.el-tag.el-tag--primary {
+  --el-tag-bg-color: rgba(47, 93, 69, 0.12);
+  --el-tag-border-color: rgba(47, 93, 69, 0.2);
+  --el-tag-text-color: var(--brew-primary);
+}
