@@ -1,98 +1,35 @@
-# 沏刻茶叶电商平台 - 长期记忆
+# 项目记忆
 
-## 项目技术栈
-- **后端**: Spring Boot 2.7 + MyBatis + MySQL 8.0，端口 8080，context-path /api
-- **前端**: Vue 3 + Vite + Element Plus + TypeScript，端口 5173（dev 模式）
-- **数据库**: MySQL，库名 `brew-now`，用户 root / 密码 200306
-- **对象存储**: MinIO，端口 9000（API）/ 9001（控制台），凭据 minioadmin/minioadmin，bucket: brew-now
-- **日志**: 后端 /tmp/backend.log，MinIO /tmp/minio.log，前端 /tmp/frontend.log
+## 工作背景
+用户正在进行计算机本科毕业设计，项目采用 SpringBoot + Vue3 + MySQL + Redis + MinIO + JWT + SpringCache 技术栈。核心功能涵盖商品订单管理及推荐模块，实现了基线协同过滤、时间衰减（λ=0.08）和季节增强三种推荐模式。论文存放于本地 Documents/毕业设计/ 目录。
 
-## 启动方式（本地开发）
-1. MySQL 通过 brew services 自动启动（已配置）
-2. MinIO: `nohup minio server /path/to/minio-data --address :9000 --console-address :9001 &`
-3. 后端: `cd backend && nohup mvn spring-boot:run &` （需等约 20 秒启动）
-4. 前端: `cd frontend && nohup npm run dev &`
+## 个人背景
+- 用户偏好通俗易懂的语言风格，避免过于专业晦涩的表达
+- 要求内容直接可复制粘贴，减少解释性文字
+- 对代码和表格有特定排版需求，需调整为适合论文粘贴的格式
+- 注重黑白打印效果，图表字体需大且精简
 
-## 数据库表
-address, addresses, admins, cart_items, carts, merchants, order_items, orders, product_reviews, products, shopping_carts, user_behavior_logs, user_favorites, user_ratings, users
+## 论文信息
+- 题目：基于SpringBoot的沏刻茶叶电商平台的开发
+- 学生：李先齐，学号 202405930338
+- 班级：2024级软件工程专升本3班
+- 指导教师：陈澎（硕士）
+- 学院：信息工程学院
 
-## 上次启动时间
-2026-04-01 00:01 — 所有服务正常（本地运行）
-**前端端口**: 5173 (Vite dev server)
-**后端端口**: 8080 (/api context-path)
-**MinIO控制台**: 9001 (用户名/密码: minioadmin)
-**MySQL服务**: 3306 (brew services)
-**Redis服务**: 6379 (brew services)
+## 论文文献引用方案
+每篇只引一次，一句一引，前两章优先：[4]→1.1「等因素」句末；[3]→1.1「不够集中」逗号前；[14]→1.2国外「转化效果」句末；[2]→1.2国内「相当普遍」句末；[7]→1.2国内「等问题」句末；[15]→1.2国内「带有经验性」句末；[5]→1.2国内「推荐效果」逗号前；[1]→3.1「Sarwar等…」（已有）；[8]→3.1「减少重复计算压力」逗号前；[9]→3.1「再计算商品之间的相似度」句末；[11]→3.1「越接近」句末；[6]→3.1「候选商品的推荐得分」句末；[12]→3.2「六个环节组成」句末；[10]→3.2「补足推荐位」句末；[13]→3.2「一定可解释性」句末。论文原文在/Users/echo/Documents/毕业设计/杂/论文内容.txt。
 
-## 本地开发环境 (2026-04-01)
-已切换为本地运行模式（不再使用Docker）
+## 数据库设计差异（论文 vs 实际项目）
+- users表：论文遗漏 gender、register_time、address、admin_id 字段
+- admins表：论文遗漏 create_time 字段
+- merchants表：论文遗漏 create_time、approve_time、admin_id 字段
+- products表：论文遗漏 compatible_devices、description、is_deleted、create_time、update_time、admin_id 字段
+- user_behavior_logs表：主键论文写 behavior_id，实际为 id
+- user_favorites表：主键论文写 favorite_id，实际为 id
+- product_reviews表：论文遗漏 updated_at 字段
 
-### 一键启停脚本
-- **start.sh** - 本地一键启动（MySQL/Redis/MinIO/Backend/Frontend），启动后自动显示各角色登录账号
-- **stop.sh** - 停止后端/前端/MinIO（MySQL和Redis通过brew services管理保持运行）
-
-### 服务架构
-- **MySQL**: brew services 管理，端口 3306，库 brew-now
-- **Redis**: brew services 管理，端口 6379
-- **MinIO**: nohup 启动，数据目录 minio-data（非 .minio-data），端口 9000/9001
-- **后端**: mvn spring-boot:run，日志 /tmp/backend.log
-- **前端**: npm run dev，日志 /tmp/frontend.log
-
-### 前端构建配置
-vite.config.ts 使用函数式 manualChunks：
-- element-plus 单独拆包
-- 其余 node_modules 统一打入 vendor chunk
-（解决 Vue/Element Plus 循环依赖初始化问题）
-
-### 启动后显示的示例账号
-- **消费者**: user001 / 123456 (张三)
-- **商家**: BREW001 / 123456 (商家用户001)
-
-### 注意事项
-- 数据库表结构以 brew-now.sql 为准，init.sql 是旧版本不要用
-- Docker 相关文件保留但不再使用
-
-## 团队技术提升计划（2026-03-31）
-已为团队制定完整的技术提升计划，包括以下文档：
-1. **团队技术提升计划.md** - 总体规划和实施路线图
-2. **后端开发最佳实践.md** - Spring Boot + Java开发规范
-3. **前端开发最佳实践.md** - Vue 3 + TypeScript开发规范
-4. **持续集成与自动化测试体系.md** - CI/CD流水线和测试策略
-5. **团队技术成长路径与考核机制.md** - 职业发展和考核体系
-
-## Git开发环境配置（2026-03-31）
-已配置完整的Git开发环境，包括：
-1. **Git_开发环境配置指南.md** - 完整的Git使用指南和最佳实践
-2. **scripts/git-checks.sh** - 自动化Git规范检查脚本
-3. **.git-hooks/pre-commit-template.sh** - 预提交钩子模板
-4. **.gitignore** - 项目忽略文件配置
-
-### Git配置要点：
-- **别名配置**: st=status, co=checkout, br=branch, lg=log --oneline --graph
-- **提交规范**: Conventional Commits (feat:, fix:, docs:, style:, etc.)
-- **分支策略**: feature/, bugfix/, hotfix/, release/ 前缀规范
-- **安全操作**: 优先使用 revert，谨慎使用 reset --hard
-
-## 代码审查技能
-已安装并配置代码审查技能：`code-review-quality`
-- 优先级标准：🔴 Blocker → 🟡 Major → 🟢 Minor → 💡 Suggestion
-- 审查流程：PR提交 → 自动检查 → 人工审查 → 问题修复 → 重新审查 → 合并
-- 审查工具：SonarQube、Checkstyle、PMD、ESLint
-
-## 代码质量目标
-- 单元测试覆盖率：≥ 70%
-- 集成测试覆盖率：≥ 50%
-- 代码重复率：≤ 5%
-- 技术债务指数：≤ 10%
-- 编译构建时间：≤ 3分钟
-
-## 团队发展路径
-建立双轨制发展路径：
-1. **技术专家路径**：初级开发 → 中级开发 → 高级开发 → 资深开发 → 技术专家 → 首席科学家
-2. **管理路径**：初级开发 → 中级开发 → 技术主管 → 技术经理 → 技术总监 → CTO
-
-## 培训体系
-- 每周技术分享会（周四下午）
-- 新员工培训计划（1-3个月）
-- 导师制度（6个月周期）
-- 月度/季度/年度技术大会
+## 答辩PPT
+- 已生成毕业答辩PPT保存至桌面：/Users/echo/Desktop/毕业论文答辩.pptx
+- 共7页：封面 + 项目背景与问题痛点 + 研究核心思路与意义价值 + 系统组成与主要功能 + 系统核心亮点 + 下一步优化改进 + 致谢
+- 配色方案：深茶绿(1A3C34) + 茶金(B07D3C) + 米白(FDF8F0)
+- 答辩模板要求5页内容，每页不超过200-300字

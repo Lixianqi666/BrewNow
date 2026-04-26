@@ -7,12 +7,9 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
-const basePath = (process.env.VITE_BASE_PATH || '').trim()
-const normalizedBase = basePath ? `/${basePath.replace(/^\/+|\/+$/g, '')}/` : '/'
-
 // https://vite.dev/config/
 export default defineConfig({
-  base: normalizedBase,
+  base: '/',
   plugins: [
     vue(),
     vueDevTools(),
