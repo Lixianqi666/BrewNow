@@ -175,7 +175,7 @@ cp .env.example .env
 启动后端服务后，访问 Swagger UI：
 
 ```
-http://localhost:8080/api/swagger-ui.html
+http://localhost/api/swagger-ui.html
 ```
 
 ## 许可证
