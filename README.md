@@ -172,10 +172,10 @@ cp .env.example .env
 
 ## API 文档
 
-启动后端服务后，访问 Swagger UI：
+启动后端服务后，访问 SpringDoc OpenAPI 文档：
 
 ```
-http://localhost/api/swagger-ui.html
+http://localhost/api/swagger-ui/index.html
 ```
 
 ## 许可证
