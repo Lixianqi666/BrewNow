@@ -4,7 +4,7 @@
 
 ## 项目概览
 
-本项目是一个完整的毕业设计项目，实现了茶叶电商的完整业务流程，包括商品展示、购物车、订单管理、评价系统、智能推荐等功能。
+本项目实现了茶叶电商的完整业务流程，包括商品展示、购物车、订单管理、评价系统、智能推荐等功能。
 
 ### 功能特性
 
@@ -61,10 +61,7 @@
 ├── .github/                 # GitHub 配置
 │   ├── agents/              # GitHub Copilot Agent 指令
 │   └── copilot-instructions.md
-├── .env.example             # 环境变量模板
-├── .gitignore               # Git 忽略规则
-├── start.command            # 一键启动脚本（macOS）
-└── stop.command             # 一键停止脚本（macOS）
+└── .env.example             # 环境变量模板
 ```
 
 ## 快速开始
@@ -117,16 +114,6 @@ npm run dev
 
 前端默认运行在 `http://localhost:5173`
 
-### 4. 使用启动脚本（macOS）
-
-```bash
-# 启动所有服务
-./start.command
-
-# 停止所有服务
-./stop.command
-```
-
 ## 默认账号
 
 ### 管理员
@@ -177,7 +164,3 @@ cp .env.example .env
 ```
 http://localhost/api/swagger-ui/index.html
 ```
-
-## 许可证
-
-本项目仅供学习与毕业设计使用。
