@@ -106,6 +106,10 @@ export const merchantApi = {
     return request.get('/merchant/dashboard/stats')
   },
 
+  exportDashboardStats: () => {
+    return api.download('/merchant/dashboard/export', { showLoading: true })
+  },
+
   getCurrentMerchantProfile: (): Promise<any> => {
     return request.get('/merchant/profile/current', { showError: false })
   },
@@ -122,7 +126,7 @@ export const merchantApi = {
       page: page.toString(),
       size: size.toString()
     })
-    
+
     if (keyword) {
       queryParams.append('keyword', keyword)
     }
@@ -219,7 +223,7 @@ export const merchantApi = {
    * @param status 新状态
    */
   batchUpdateProductStatus: async (productIds: number[], status: string): Promise<any> => {
-    const promises = productIds.map(id => 
+    const promises = productIds.map(id =>
       merchantApi.updateProductStatus(id, status)
     )
     return Promise.all(promises)
@@ -230,7 +234,7 @@ export const merchantApi = {
    * @param productIds 商品ID数组
    */
   batchDeleteProducts: async (productIds: number[]): Promise<any> => {
-    const promises = productIds.map(id => 
+    const promises = productIds.map(id =>
       merchantApi.deleteProduct(id)
     )
     return Promise.all(promises)
@@ -243,7 +247,7 @@ export default merchantApi
 // 商品状态枚举
 export const ProductStatus = {
   ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE', 
+  INACTIVE: 'INACTIVE',
   DISCONTINUED: 'DISCONTINUED'
 } as const
 
@@ -272,4 +276,4 @@ export const StatusLabels = {
   [ProductStatus.ACTIVE]: '上架',
   [ProductStatus.INACTIVE]: '下架',
   [ProductStatus.DISCONTINUED]: '停产'
-} as const 
+} as const

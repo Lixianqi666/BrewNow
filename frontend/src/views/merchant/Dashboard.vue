@@ -4,10 +4,13 @@
       <template #header>
         <div class="card-header">
           <h2>商家后台</h2>
-          <BaseButton @click="fetchDashboardStats" :loading="loading">
-            <el-icon><Refresh /></el-icon>
-            刷新数据
-          </BaseButton>
+          <div class="header-actions">
+            <BaseButton @click="fetchDashboardStats" :loading="loading">
+              <el-icon><Refresh /></el-icon>
+              刷新数据
+            </BaseButton>
+            <BaseButton plain @click="exportDashboard" :loading="exportLoading">导出数据(.xlsx)</BaseButton>
+          </div>
         </div>
       </template>
 
@@ -57,6 +60,7 @@ import { useUserStore } from '@/stores/user'
 const userStore = useUserStore()
 // 加载状态
 const loading = ref(false)
+const exportLoading = ref(false)
 
 // 统计数据
 const dashboardStats = reactive<MerchantDashboardStats>({
@@ -72,13 +76,13 @@ const fetchDashboardStats = async () => {
     loading.value = false
     return
   }
-  
+
   loading.value = true
   try {
     console.log('开始获取商家统计数据...')
     const response = await merchantApi.getDashboardStats()
     console.log('API响应:', response)
-    
+
     if (response.code === 200) {
       Object.assign(dashboardStats, response.data)
       console.log('商家统计数据获取成功:', response.data)
@@ -91,6 +95,47 @@ const fetchDashboardStats = async () => {
     ElMessage.error('获取统计数据失败: ' + (error as Error).message)
   } finally {
     loading.value = false
+  }
+}
+
+const getFilenameFromHeader = (contentDisposition?: string, fallback = 'merchant-dashboard.xlsx') => {
+  if (!contentDisposition) return fallback
+  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i)
+  if (utf8Match?.[1]) {
+    return decodeURIComponent(utf8Match[1])
+  }
+  const plainMatch = contentDisposition.match(/filename="?([^";]+)"?/i)
+  if (plainMatch?.[1]) {
+    return plainMatch[1]
+  }
+  return fallback
+}
+
+const triggerDownload = (blob: Blob, filename: string) => {
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+}
+
+const exportDashboard = async () => {
+  exportLoading.value = true
+  try {
+    const response = await merchantApi.exportDashboardStats()
+    const filename = getFilenameFromHeader(
+      response.headers?.['content-disposition'] as string | undefined,
+      '商家数据导出.xlsx'
+    )
+    triggerDownload(response.data, filename)
+    ElMessage.success('商家数据已导出')
+  } catch (error) {
+    console.error('导出商家总览失败:', error)
+  } finally {
+    exportLoading.value = false
   }
 }
 
@@ -116,6 +161,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .card-header h2 {
@@ -167,4 +217,4 @@ onMounted(() => {
   margin: 0;
   color: #606266;
 }
-</style> 
+</style>

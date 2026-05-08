@@ -787,6 +787,10 @@ onMounted(() => {
 
 .action-button {
   min-width: 78px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-button--danger {

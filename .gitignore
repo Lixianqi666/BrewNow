@@ -55,3 +55,23 @@ minio-data/
 
 # 本地依赖缓存
 .m2/
+
+# 上传文件目录（包含头像等用户生成的文件）
+backend/uploads/
+
+# 自动生成的文件
+frontend/auto-imports.d.ts
+frontend/components.d.ts
+
+# Java 相关
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+
+# npm 相关
+package-lock.json
+
+# 系统启动脚本生成的 PID 文件
+*.pid

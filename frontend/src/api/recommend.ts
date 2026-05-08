@@ -1,4 +1,4 @@
-import request from './request'
+import request, { api } from './request'
 import type { Product } from './product'
 
 export interface RecommendationItem {
@@ -65,5 +65,9 @@ export const recommendApi = {
 
   getRecommendationEvaluation(topK = 10) {
     return request.get<RecommendationEvaluation>(`/recommend/evaluation?topK=${topK}`, { showError: false })
+  },
+
+  exportRecommendationStats(topK = 10) {
+    return api.download(`/recommend/stats/export?topK=${topK}`, { showLoading: true })
   }
 }

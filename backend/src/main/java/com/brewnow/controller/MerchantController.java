@@ -7,6 +7,8 @@ import com.brewnow.entity.Product;
 import com.brewnow.dto.order.MerchantOrderSummary;
 import com.brewnow.enums.OrderStatus;
 import com.brewnow.mapper.OrderMapper;
+import com.brewnow.mapper.ProductReviewMapper;
+import com.brewnow.entity.ProductReview;
 import com.brewnow.service.MinioStorageService;
 import com.brewnow.service.MerchantService;
 import com.brewnow.service.ProductService;
@@ -16,12 +18,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +59,9 @@ public class MerchantController {
     private OrderMapper orderMapper;
 
     @Autowired
+    private ProductReviewMapper productReviewMapper;
+
+    @Autowired
     private JwtUtil jwtUtil;
 
     @Autowired
@@ -67,31 +79,151 @@ public class MerchantController {
                 return Result.error("未找到商家信息");
             }
 
-            Map<String, Object> stats = new HashMap<>();
-
-            // 获取商品总数
-            Integer productCount = productService.getProductCountByMerchant(merchantId);
-            stats.put("productCount", productCount != null ? productCount : 0);
-
-            // 获取订单总数
-            Integer orderCount = orderService.getOrderCountByMerchant(merchantId);
-            stats.put("orderCount", orderCount != null ? orderCount : 0);
-
-            // 获取总收入（暂时设为0，后续可以实现）
-            stats.put("totalRevenue", 0.0);
-
-            // 获取客户数量（暂时设为0，后续可以实现）
-            stats.put("customerCount", 0);
-
-            Integer lowStockCount = productService.getLowStockCountByMerchant(merchantId);
-            stats.put("lowStockCount", lowStockCount != null ? lowStockCount : 0);
-            stats.put("lowStockProducts", productService.getLowStockProductsByMerchant(merchantId, 6));
+            Map<String, Object> stats = buildDashboardStats(merchantId);
 
             log.info("商家{}获取统计数据成功", merchantId);
             return Result.success("获取统计数据成功", stats);
         } catch (Exception e) {
             log.error("获取商家统计数据失败", e);
             return Result.error("获取统计数据失败：" + e.getMessage());
+        }
+    }
+
+    @GetMapping("/dashboard/export")
+    @Operation(summary = "导出商家数据", description = "导出当前商家总览、商品、订单、评价等全部数据，文件格式为 xlsx")
+    public ResponseEntity<byte[]> exportDashboardStats(HttpServletRequest request) {
+        String merchantId = getMerchantIdFromRequest(request);
+        if (merchantId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Map<String, Object> stats = buildDashboardStats(merchantId);
+        List<Product> products = productService.getProductsByMerchant(merchantId);
+        String brandName = resolveMerchantBrandName(merchantId);
+        products.forEach(p -> p.setBrand(brandName));
+
+        List<MerchantOrderSummary> orders = orderService.getOrdersByMerchant(merchantId, null, 1, 99999);
+        List<ProductReview> reviews = productReviewMapper.selectByMerchantId(merchantId);
+        List<Product> lowStockProducts = productService.getLowStockProductsByMerchant(merchantId, 200);
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            // Sheet 1: 商家总览
+            Sheet overviewSheet = workbook.createSheet("商家总览");
+            int rowIndex = 0;
+            rowIndex = writePairRow(overviewSheet, rowIndex, "指标", "值");
+            rowIndex = writePairRow(overviewSheet, rowIndex, "商家ID", merchantId);
+            rowIndex = writePairRow(overviewSheet, rowIndex, "商品总数", String.valueOf(stats.getOrDefault("productCount", 0)));
+            rowIndex = writePairRow(overviewSheet, rowIndex, "订单总数", String.valueOf(stats.getOrDefault("orderCount", 0)));
+            rowIndex = writePairRow(overviewSheet, rowIndex, "总收入", String.valueOf(stats.getOrDefault("totalRevenue", 0.0)));
+            rowIndex = writePairRow(overviewSheet, rowIndex, "客户数量", String.valueOf(stats.getOrDefault("customerCount", 0)));
+            writePairRow(overviewSheet, rowIndex, "低库存商品数", String.valueOf(stats.getOrDefault("lowStockCount", 0)));
+
+            // Sheet 2: 商品列表
+            Sheet productSheet = workbook.createSheet("商品列表");
+            int prodRow = 0;
+            Row prodHeader = productSheet.createRow(prodRow++);
+            String[] prodCols = {"商品ID", "商品名称", "品牌", "分类", "茶叶标签", "产地", "口感特征", "价格", "库存", "预警库存", "描述", "状态", "创建时间", "更新时间"};
+            for (int i = 0; i < prodCols.length; i++) {
+                prodHeader.createCell(i).setCellValue(prodCols[i]);
+            }
+            for (Product p : products) {
+                Row r = productSheet.createRow(prodRow++);
+                r.createCell(0).setCellValue(p.getProductId() == null ? 0 : p.getProductId());
+                r.createCell(1).setCellValue(p.getProductName() == null ? "" : p.getProductName());
+                r.createCell(2).setCellValue(p.getBrand() == null ? "" : p.getBrand());
+                r.createCell(3).setCellValue(p.getCategory() == null ? "" : p.getCategory());
+                r.createCell(4).setCellValue(p.getTeaTags() == null ? "" : p.getTeaTags());
+                r.createCell(5).setCellValue(p.getOriginPlace() == null ? "" : p.getOriginPlace());
+                r.createCell(6).setCellValue(p.getFlavorProfile() == null ? "" : p.getFlavorProfile());
+                r.createCell(7).setCellValue(p.getPrice() == null ? 0 : p.getPrice().doubleValue());
+                r.createCell(8).setCellValue(p.getStockQuantity() == null ? 0 : p.getStockQuantity());
+                r.createCell(9).setCellValue(p.getWarningStock() == null ? 0 : p.getWarningStock());
+                r.createCell(10).setCellValue(p.getDescription() == null ? "" : p.getDescription());
+                r.createCell(11).setCellValue(p.getStatus() == null ? "" : p.getStatus().name());
+                r.createCell(12).setCellValue(p.getCreateTime() == null ? "" : p.getCreateTime().toString());
+                r.createCell(13).setCellValue(p.getUpdateTime() == null ? "" : p.getUpdateTime().toString());
+            }
+
+            // Sheet 3: 订单列表
+            Sheet orderSheet = workbook.createSheet("订单列表");
+            int orderRow = 0;
+            Row orderHeader = orderSheet.createRow(orderRow++);
+            String[] orderCols = {"订单ID", "订单号", "用户ID", "总金额", "订单状态", "支付方式", "下单时间", "商品数量", "商品名称"};
+            for (int i = 0; i < orderCols.length; i++) {
+                orderHeader.createCell(i).setCellValue(orderCols[i]);
+            }
+            for (MerchantOrderSummary o : orders) {
+                Row r = orderSheet.createRow(orderRow++);
+                r.createCell(0).setCellValue(o.getOrderId() == null ? 0 : o.getOrderId());
+                r.createCell(1).setCellValue(o.getOrderNumber() == null ? "" : o.getOrderNumber());
+                r.createCell(2).setCellValue(o.getUserId() == null ? 0 : o.getUserId());
+                r.createCell(3).setCellValue(o.getTotalAmount() == null ? 0 : o.getTotalAmount().doubleValue());
+                r.createCell(4).setCellValue(o.getOrderStatus() == null ? "" : o.getOrderStatus().name());
+                r.createCell(5).setCellValue(o.getPaymentMethod() == null ? "" : o.getPaymentMethod().name());
+                r.createCell(6).setCellValue(o.getOrderDate() == null ? "" : o.getOrderDate().toString());
+                r.createCell(7).setCellValue(o.getItemCount() == null ? 0 : o.getItemCount());
+                r.createCell(8).setCellValue(o.getProductNames() == null ? "" : o.getProductNames());
+            }
+
+            // Sheet 4: 商品评价
+            Sheet reviewSheet = workbook.createSheet("商品评价");
+            int reviewRow = 0;
+            Row reviewHeader = reviewSheet.createRow(reviewRow++);
+            String[] reviewCols = {"评价ID", "订单ID", "商品ID", "用户ID", "用户名", "评分", "评价内容", "评价时间"};
+            for (int i = 0; i < reviewCols.length; i++) {
+                reviewHeader.createCell(i).setCellValue(reviewCols[i]);
+            }
+            for (ProductReview rv : reviews) {
+                Row r = reviewSheet.createRow(reviewRow++);
+                r.createCell(0).setCellValue(rv.getReviewId() == null ? 0 : rv.getReviewId());
+                r.createCell(1).setCellValue(rv.getOrderId() == null ? 0 : rv.getOrderId());
+                r.createCell(2).setCellValue(rv.getProductId() == null ? 0 : rv.getProductId());
+                r.createCell(3).setCellValue(rv.getUserId() == null ? 0 : rv.getUserId());
+                r.createCell(4).setCellValue(rv.getUsername() == null ? "" : rv.getUsername());
+                r.createCell(5).setCellValue(rv.getRating() == null ? 0 : rv.getRating());
+                r.createCell(6).setCellValue(rv.getContent() == null ? "" : rv.getContent());
+                r.createCell(7).setCellValue(rv.getCreatedAt() == null ? "" : rv.getCreatedAt().toString());
+            }
+
+            // Sheet 5: 低库存商品
+            Sheet lowStockSheet = workbook.createSheet("低库存商品");
+            int lowStockRow = 0;
+            Row lowStockHeader = lowStockSheet.createRow(lowStockRow++);
+            lowStockHeader.createCell(0).setCellValue("商品ID");
+            lowStockHeader.createCell(1).setCellValue("商品名称");
+            lowStockHeader.createCell(2).setCellValue("分类");
+            lowStockHeader.createCell(3).setCellValue("库存");
+            lowStockHeader.createCell(4).setCellValue("预警库存");
+            lowStockHeader.createCell(5).setCellValue("状态");
+            for (Product product : lowStockProducts) {
+                Row row = lowStockSheet.createRow(lowStockRow++);
+                row.createCell(0).setCellValue(product.getProductId() == null ? 0 : product.getProductId());
+                row.createCell(1).setCellValue(product.getProductName() == null ? "" : product.getProductName());
+                row.createCell(2).setCellValue(product.getCategory() == null ? "" : product.getCategory());
+                row.createCell(3).setCellValue(product.getStockQuantity() == null ? 0 : product.getStockQuantity());
+                row.createCell(4).setCellValue(product.getWarningStock() == null ? 0 : product.getWarningStock());
+                row.createCell(5).setCellValue(product.getStatus() == null ? "" : product.getStatus().name());
+            }
+
+            for (Sheet sheet : new Sheet[] { overviewSheet, productSheet, orderSheet, reviewSheet, lowStockSheet }) {
+                if (sheet.getRow(0) == null) continue;
+                for (int i = 0; i < sheet.getRow(0).getLastCellNum(); i++) {
+                    sheet.autoSizeColumn(i);
+                }
+            }
+
+            workbook.write(outputStream);
+
+            String filename = "商家数据导出.xlsx";
+            String encodedFilename = java.net.URLEncoder.encode(filename, "UTF-8").replace("+", "%20");
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFilename)
+                    .contentType(org.springframework.http.MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(outputStream.toByteArray());
+        } catch (Exception e) {
+            log.error("导出商家数据失败", e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -520,6 +652,32 @@ public class MerchantController {
 
     private void fillMerchantBrand(Product product, String merchantId) {
         product.setBrand(resolveMerchantBrandName(merchantId));
+    }
+
+    private Map<String, Object> buildDashboardStats(String merchantId) {
+        Map<String, Object> stats = new HashMap<>();
+
+        Integer productCount = productService.getProductCountByMerchant(merchantId);
+        stats.put("productCount", productCount != null ? productCount : 0);
+
+        Integer orderCount = orderService.getOrderCountByMerchant(merchantId);
+        stats.put("orderCount", orderCount != null ? orderCount : 0);
+
+        stats.put("totalRevenue", 0.0);
+        stats.put("customerCount", 0);
+
+        Integer lowStockCount = productService.getLowStockCountByMerchant(merchantId);
+        stats.put("lowStockCount", lowStockCount != null ? lowStockCount : 0);
+        stats.put("lowStockProducts", productService.getLowStockProductsByMerchant(merchantId, 6));
+
+        return stats;
+    }
+
+    private int writePairRow(Sheet sheet, int rowIndex, String key, String value) {
+        Row row = sheet.createRow(rowIndex);
+        row.createCell(0).setCellValue(key);
+        row.createCell(1).setCellValue(value == null ? "" : value);
+        return rowIndex + 1;
     }
 
     private boolean sameMerchant(String a, String b) {

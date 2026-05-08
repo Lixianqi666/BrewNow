@@ -141,6 +141,11 @@ const request: AxiosInstance = axios.create({
   }
 })
 
+const fileRequest: AxiosInstance = axios.create({
+  baseURL: apiBaseURL,
+  timeout: 30000
+})
+
 request.interceptors.request.use(
   (config: any) => {
     const token = userStorage.getToken()
@@ -155,6 +160,26 @@ request.interceptors.request.use(
     }
 
     config.metadata = { startTime: Date.now() }
+    return config
+  },
+  (error) => {
+    loadingManager.hide()
+    return Promise.reject(error)
+  }
+)
+
+fileRequest.interceptors.request.use(
+  (config: any) => {
+    const token = userStorage.getToken()
+    if (token) {
+      config.headers = config.headers || {}
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    const normalized = normalizeConfig(config)
+    if (normalized.showLoading) {
+      loadingManager.show('正在导出...')
+    }
     return config
   },
   (error) => {
@@ -248,6 +273,48 @@ request.interceptors.response.use(
   }
 )
 
+fileRequest.interceptors.response.use(
+  (response) => {
+    const config = response.config as RequestConfig
+    const { showLoading } = normalizeConfig(config)
+    if (showLoading) {
+      loadingManager.hide()
+    }
+    return response
+  },
+  async (error: AxiosError) => {
+    const config = (error.config || {}) as RequestConfig
+    const { showLoading, showError } = normalizeConfig(config)
+    if (showLoading) {
+      loadingManager.hide()
+    }
+
+    if (error.response) {
+      const message = buildHttpErrorMessage(error.response.status, error.response.data)
+      if (error.response.status === 401) {
+        if (showError) {
+          ElMessage.error(message)
+        }
+        await handleUnauthorized()
+      } else if (showError) {
+        ElMessage.error(message)
+      }
+      return Promise.reject(
+        toRequestError(message, {
+          status: error.response.status,
+          response: error.response
+        })
+      )
+    }
+
+    const message = error.message || '下载失败'
+    if (showError) {
+      ElMessage.error(message)
+    }
+    return Promise.reject(toRequestError(message))
+  }
+)
+
 export const api = {
   get<T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
     return request.get(url, config)
@@ -279,6 +346,13 @@ export const api = {
         'Content-Type': 'multipart/form-data',
         ...config?.headers
       }
+    })
+  },
+
+  download(url: string, config?: RequestConfig) {
+    return fileRequest.get<Blob>(url, {
+      ...config,
+      responseType: 'blob'
     })
   },
 

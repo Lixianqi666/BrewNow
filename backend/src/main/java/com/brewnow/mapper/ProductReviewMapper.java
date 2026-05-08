@@ -19,4 +19,6 @@ public interface ProductReviewMapper {
     Map<String, Object> selectReviewSummary(@Param("productId") Integer productId);
 
     Integer countByProductId(@Param("productId") Integer productId);
+
+    List<ProductReview> selectByMerchantId(@Param("merchantId") String merchantId);
 }
